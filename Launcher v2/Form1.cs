@@ -1,20 +1,14 @@
 ﻿using Ionic.Zip;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Security.Policy;
-using System.Security.Principal;
-using System.Text;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Launcher_v3
@@ -38,6 +32,29 @@ namespace Launcher_v3
         {
             InitializeComponent();
 
+            patchNotes.Navigated += (sender, e) =>
+            {
+                Debug.WriteLine("Navigated: " + e.Url);
+            };
+
+            patchNotes.DocumentCompleted += (sender, e) =>
+            {
+                Debug.WriteLine("DocumentCompleted: " + e.Url);
+                Debug.WriteLine("ReadyState: " + patchNotes.ReadyState);
+            };
+
+            patchNotes.ScriptErrorsSuppressed = false;
+
+            patchNotes.Visible = true;
+            //patchNotes.BringToFront();
+
+            patchNotes.DocumentText = @"
+        <html>
+            <body style='background:red; color:white'>
+                <h1>TESTE WEBBROWSER</h1>
+            </body>
+        </html>";
+
             //Load current values from launcher.ini during initialize.
             _iniFile = new IniFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "launcher.ini"));
 
@@ -46,12 +63,29 @@ namespace Launcher_v3
             sframeParams = _iniFile.SframeParam;
             checkBox1.Checked = bool.TryParse(_iniFile.UseAutoLogin, out bool result) ? result : false;
 
+            SelfUpdater.CheckAndApplyUpdate();
+
+            this.Shown += (sender, e) => LoadBackgroundImage();
+
             //Download progress
-            backgroundWorker1.RunWorkerAsync();
+            Task.Run(() => backgroundWorker1.RunWorkerAsync());
 
             strtGameBtn.Enabled = false;
 
             this.FormClosing += MainForm_FormClosing;
+        }
+
+        private void CheckLauncherUpdate()
+        {
+            var currentLauncher = $@"{Assembly.GetExecutingAssembly().GetName().Name}.exe";
+            var newLauncher = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resource", currentLauncher);
+
+            if (!File.Exists(newLauncher))
+            {
+                return;
+            }
+
+
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -131,14 +165,37 @@ namespace Launcher_v3
                 return;
             }
 
-            patchNotes.Url = new Uri(Flurl.Url.Combine(_iniFile.LauncherBackgroundUrl, "html", "index.html"));
+            var url = Flurl.Url.Combine(_iniFile.LauncherBackgroundUrl, "html", "index.html");
+
+            //patchNotes.Url = new Uri(Flurl.Url.Combine(_iniFile.LauncherBackgroundUrl, "html", "index.html"));
+
+            //http://maxrappelzhome.duckdns.org:8080/
+            //patchNotes.Refresh();
+
+            patchNotes.DocumentText =
+                "<html><body><h2>TESTE WEBBROWSER</h2></body></html>";
+
+            patchNotes.DocumentCompleted += (sender, e) =>
+            {
+                if (e.Url.ToString() == "about:blank" &&
+                    patchNotes.Document?.Body?.InnerText?.Contains("TESTE WEBBROWSER") == true)
+                {
+                    Debug.WriteLine("HTML local carregado, navegando...");
+                    patchNotes.Navigate(url);
+                }
+            };
+            
+
+            //patchNotes.Navigate(url);
+
+            //Debug.WriteLine("Navigate executado");
         }
         
 
         //background Worker: Handles downloading the updates
         private async void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            LoadBackgroundImage();
+            //LoadBackgroundImage();
 
             //Defines the server's update directory
             //string Server = "http://127.0.0.1/Updates/";
@@ -147,20 +204,6 @@ namespace Launcher_v3
             //Defines application root
             string Root = AppDomain.CurrentDomain.BaseDirectory;
 
-            //Make sure version file exists
-            FileStream fs = null;
-            if(!File.Exists("version"))
-            {
-                using (fs = File.Create("version"))
-                {
-
-                }
-
-                using (StreamWriter sw = new StreamWriter("version"))
-                {
-                    sw.Write("1.0");
-                }
-            }
             //checks client version
             string lclVersion;
             using (StreamReader reader = new StreamReader("version"))
@@ -168,18 +211,46 @@ namespace Launcher_v3
                 lclVersion = reader.ReadLine();
             }
 
+            if (lclVersion == null)
+            {
+                //Make sure version file exists
+                FileStream fs = null;
+                if (!File.Exists("version"))
+                {
+                    using (fs = File.Create("version"))
+                    {
+
+                    }
+
+                    using (StreamWriter sw = new StreamWriter("version"))
+                    {
+                        sw.Write("1.0");
+                        lclVersion = "1.0";
+                    }
+                }
+            }
+
             decimal localVersion = decimal.Parse(lclVersion);
 
             //server's list of updates
             //Updates.xml must be placed at root of "C:\inetpub\wwwroot" if you are using IIS.
             var httpClient = new HttpClient();
-            var xml = Flurl.Url.Combine(_iniFile.LauncherBackgroundUrl, "Updates.xml");
+            var xml = Flurl.Url.Combine(_iniFile.LauncherBackgroundUrl, "updates.xml");
 
-            //Reading Url as Xml before Parse
-            var xmlContent = await httpClient.GetStringAsync(xml);
+            string xmlContent = string.Empty;
+            XDocument serverXml = new XDocument();
 
-            //Prefering XDocument.Parse() instead XDocument.Load() to avoid most of exceptions
-            var serverXml = XDocument.Parse(xmlContent, LoadOptions.PreserveWhitespace);
+            try
+            {
+                //Reading Url as Xml before Parse
+                xmlContent = await httpClient.GetStringAsync(xml);
+                //Prefering XDocument.Parse() instead XDocument.Load() to avoid most of exceptions
+                serverXml = XDocument.Parse(xmlContent, LoadOptions.PreserveWhitespace);
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
             
             //The Update Process
             foreach (XElement update in serverXml.Descendants("update"))
@@ -190,64 +261,83 @@ namespace Launcher_v3
                 decimal serverVersion = decimal.Parse(version);
 
 
-                string sUrlToReadFileFrom = Server + file;
+                string sUrlToReadFileFrom = Flurl.Url.Combine(Server, "resources", file);
 
-                string sFilePathToWriteFileTo = Root + file;
+                string sFilePathToWriteFileTo = Path.Combine(Root, file);
 
-                if (serverVersion > localVersion)
+                if (!(serverVersion > localVersion))
                 {
-                    Uri url = new Uri(sUrlToReadFileFrom);
-                    System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
-                    System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse();
-                    response.Close();
+                    return;
+                }
+                
+                Uri url = new Uri(sUrlToReadFileFrom);
+                System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+                System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse();
+                response.Close();
 
-                    Int64 iSize = response.ContentLength;
+                Int64 iSize = response.ContentLength;
 
-                    Int64 iRunningByteTotal = 0;
+                Int64 iRunningByteTotal = 0;
 
-                    using (System.Net.WebClient client = new System.Net.WebClient())
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.WorkerReportsProgress = true;
+                worker.WorkerSupportsCancellation = true;
+
+                using (System.Net.WebClient client = new System.Net.WebClient())
+                {
+                    using (System.IO.Stream streamRemote = client.OpenRead(new Uri(sUrlToReadFileFrom)))
                     {
-                        using (System.IO.Stream streamRemote = client.OpenRead(new Uri(sUrlToReadFileFrom)))
+                        using (Stream streamLocal = new FileStream(sFilePathToWriteFileTo, FileMode.Create, FileAccess.Write, FileShare.None))
                         {
-                            using (Stream streamLocal = new FileStream(sFilePathToWriteFileTo, FileMode.Create, FileAccess.Write, FileShare.None))
+                            int iByteSize = 0;
+                            byte[] byteBuffer = new byte[iSize];
+                            while ((iByteSize = streamRemote.Read(byteBuffer, 0, byteBuffer.Length)) > 0)
                             {
-                                int iByteSize = 0;
-                                byte[] byteBuffer = new byte[iSize];
-                                while ((iByteSize = streamRemote.Read(byteBuffer, 0, byteBuffer.Length)) > 0)
-                                {
-                                    streamLocal.Write(byteBuffer, 0, iByteSize);
-                                    iRunningByteTotal += iByteSize;
+                                streamLocal.Write(byteBuffer, 0, iByteSize);
+                                iRunningByteTotal += iByteSize;
 
-                                    double dIndex = (double)(iRunningByteTotal);
-                                    double dTotal = (double)byteBuffer.Length;
-                                    double dProgressPercentage = (dIndex / dTotal);
-                                    int iProgressPercentage = (int)(dProgressPercentage * 100);
+                                double dIndex = (double)(iRunningByteTotal);
+                                double dTotal = (double)byteBuffer.Length;
+                                double dProgressPercentage = (dIndex / dTotal);
+                                int iProgressPercentage = (int)(dProgressPercentage * 100);
 
-                                    backgroundWorker1.ReportProgress(iProgressPercentage);
-                                }
-
-                                streamLocal.Close();
+                                worker.ReportProgress(iProgressPercentage);
+                                patchNotes.Refresh();
                             }
 
-                            streamRemote.Close();
+                            streamLocal.Close();
                         }
-                    }
 
-                    //unzip
-                    using (ZipFile zip = ZipFile.Read(file))
+                        streamRemote.Close();
+                    }
+                }
+
+                backgroundWorker1 = worker;
+
+                //unzip
+                using (ZipFile zip = ZipFile.Read(file))
+                {
+                    foreach (ZipEntry zipFiles in zip)
                     {
-                        foreach (ZipEntry zipFiles in zip)
-                        {
-                            zipFiles.Extract(Root + "\\Resource\\", true);
-                        }
+                        zipFiles.Extract(Root + "\\Resource\\", true);
                     }
+                }
 
+                //Delete Zip File
+                deleteFile(file);
+
+                var currentLauncher = $@"{Assembly.GetExecutingAssembly().GetName().Name}.exe";
+                var newLauncher = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "resource", currentLauncher);
+
+                if (File.Exists(newLauncher))
+                {
                     //download new version file
-                    WebClient webClient = new WebClient();
-                    webClient.DownloadFile(Server+"version.txt", @Root+"version");
+                    //WebClient webClient = new WebClient();
+                    //webClient.DownloadFile(Flurl.Url.Combine(Server, "resources", "version.txt"), Path.Combine(@Root, "version"));
 
-                    //Delete Zip File
-                    deleteFile(file);
+                    MessageBox.Show(@"New Launcher has been detected, reopen the current one.", @"Information", MessageBoxButtons.OK);
+                    
+                    Application.Exit(e);
                 }
             }
         }
@@ -257,13 +347,15 @@ namespace Launcher_v3
             progressBar1.Value = e.ProgressPercentage;
             downloadLbl.ForeColor = System.Drawing.Color.Silver;
             downloadLbl.Text = "Downloading Updates";
+            patchNotes.Refresh();
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             strtGameBtn.Enabled = true;
-            this.downloadLbl.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(121)))), ((int)(((byte)(203)))));
+            //this.downloadLbl.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(121)))), ((int)(((byte)(203)))));
             downloadLbl.Text = "Client is up to date";
+            patchNotes.Refresh();
         }
 
 

@@ -53,7 +53,7 @@
             this.progressBar1.Location = new System.Drawing.Point(18, 646);
             this.progressBar1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(1080, 35);
+            this.progressBar1.Size = new System.Drawing.Size(1060, 35);
             this.progressBar1.TabIndex = 0;
             // 
             // backgroundWorker1
@@ -71,10 +71,10 @@
             this.strtGameBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.strtGameBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.strtGameBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(121)))), ((int)(((byte)(203)))));
-            this.strtGameBtn.Location = new System.Drawing.Point(1107, 597);
+            this.strtGameBtn.Location = new System.Drawing.Point(1089, 597);
             this.strtGameBtn.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.strtGameBtn.Name = "strtGameBtn";
-            this.strtGameBtn.Size = new System.Drawing.Size(225, 86);
+            this.strtGameBtn.Size = new System.Drawing.Size(243, 86);
             this.strtGameBtn.TabIndex = 1;
             this.strtGameBtn.Text = "START GAME";
             this.strtGameBtn.UseVisualStyleBackColor = false;
@@ -82,16 +82,16 @@
             // 
             // downloadLbl
             // 
-            this.downloadLbl.AutoSize = true;
-            this.downloadLbl.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(17)))), ((int)(((byte)(17)))));
-            this.downloadLbl.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(121)))), ((int)(((byte)(203)))));
-            this.downloadLbl.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.downloadLbl.Location = new System.Drawing.Point(908, 618);
+            this.downloadLbl.BackColor = System.Drawing.Color.Gray;
+            this.downloadLbl.ForeColor = System.Drawing.Color.Transparent;
+            this.downloadLbl.Location = new System.Drawing.Point(18, 608);
             this.downloadLbl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.downloadLbl.Name = "downloadLbl";
             this.downloadLbl.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.downloadLbl.Size = new System.Drawing.Size(0, 20);
+            this.downloadLbl.Size = new System.Drawing.Size(1060, 33);
             this.downloadLbl.TabIndex = 2;
+            this.downloadLbl.Text = "Client is up to date";
+            this.downloadLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // closeBtn
             // 
@@ -127,12 +127,12 @@
             // 
             // patchNotes
             // 
-            this.patchNotes.Location = new System.Drawing.Point(0, 40);
+            this.patchNotes.Location = new System.Drawing.Point(0, 50);
             this.patchNotes.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.patchNotes.MinimumSize = new System.Drawing.Size(30, 31);
             this.patchNotes.Name = "patchNotes";
             this.patchNotes.ScrollBarsEnabled = false;
-            this.patchNotes.Size = new System.Drawing.Size(1350, 662);
+            this.patchNotes.Size = new System.Drawing.Size(1350, 640);
             this.patchNotes.TabIndex = 5;
             this.patchNotes.Url = new System.Uri("", System.UriKind.Relative);
             // 
@@ -171,16 +171,16 @@
             // 
             // panel1
             // 
-            this.panel1.BackColor = System.Drawing.Color.LightGray;
+            this.panel1.BackColor = System.Drawing.Color.Transparent;
             this.panel1.Controls.Add(this.checkBox1);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.textBox2);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.textBox1);
-            this.panel1.Location = new System.Drawing.Point(1095, 333);
+            this.panel1.Location = new System.Drawing.Point(1089, 333);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(237, 230);
+            this.panel1.Size = new System.Drawing.Size(243, 230);
             this.panel1.TabIndex = 10;
             // 
             // checkBox1
@@ -208,12 +208,12 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(72)))), ((int)(((byte)(72)))), ((int)(((byte)(72)))));
+            this.BackColor = System.Drawing.Color.DodgerBlue;
             this.ClientSize = new System.Drawing.Size(1350, 692);
+            this.Controls.Add(this.downloadLbl);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.minimizeBtn);
             this.Controls.Add(this.closeBtn);
-            this.Controls.Add(this.downloadLbl);
             this.Controls.Add(this.strtGameBtn);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.patchNotes);
@@ -226,7 +226,6 @@
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
