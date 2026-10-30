@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<AssemblyName>RappelzLauncher</AssemblyName>
+		<AssemblyVersion>2026.05.20.0000</AssemblyVersion>
+		<FileVersion>2026.05.20.0000</FileVersion>
+		<ApplicationIcon>Launcher.ico</ApplicationIcon>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<SelfContained>false</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
+		<EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+		<DebugType>embedded</DebugType>
+		<PublishReadyToRun>false</PublishReadyToRun>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+
+		<Compile Update="Properties\Resources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resources.resx</DependentUpon>
+		</Compile>
+
+		<EmbeddedResource Update="Properties\Resources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+
+		<None Update="RappelzLauncher.ini" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
+		<None Update="Launcher.ico" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+
+		<ProjectReference Include="..\RappelzLauncher.Updater\RappelzLauncher.Updater.csproj" ReferenceOutputAssembly="false" Private="false" />
+	</ItemGroup>
+
+	<Target Name="PublishUpdaterAfterBuild" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+		<MSBuild Projects="$(MSBuildProjectDirectory)\..\RappelzLauncher.Updater\RappelzLauncher.Updater.csproj" Targets="Publish" Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=false;PublishSingleFile=true;EnableCompressionInSingleFile=false;NoBuild=true;NoRestore=true;PublishDir=$(TargetDir)" />
+		<Error Condition="!Exists('$(TargetDir)RappelzLauncher.Updater.exe')" Text="RappelzLauncher.Updater.exe was not generated." />
+	</Target>
+
+	<Target Name="CopyUpdaterAfterPublish" AfterTargets="Publish" Condition="Exists('$(TargetDir)RappelzLauncher.Updater.exe')">
+		<Copy SourceFiles="$(TargetDir)RappelzLauncher.Updater.exe" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+	</Target>
+</Project>

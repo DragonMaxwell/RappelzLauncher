@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<AssemblyName>RappelzLauncher.Updater</AssemblyName>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<SelfContained>false</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
+		<EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+		<DebugType>embedded</DebugType>
+		<PublishReadyToRun>false</PublishReadyToRun>
+		<ApplicationIcon>Launcher.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="..\RappelzLauncher\Core\ArchiveInstaller.cs" Link="Core\ArchiveInstaller.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Launcher.ico" />
+	</ItemGroup>
+</Project>
