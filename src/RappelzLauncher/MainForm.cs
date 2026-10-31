@@ -15,10 +15,11 @@ public partial class MainForm : Form
     private int _downloadPercentage;
     private bool _restarting;
     private bool _updating;
-
+    
     public MainForm()
     {
         InitializeComponent();
+        LauncherEnvironment.Initialize(this);
 
         _startButton.Parent!.MouseMove += (_, e) =>
         {
@@ -147,7 +148,7 @@ public partial class MainForm : Form
 
             PatchInstaller patchInstaller = new(downloader);
             await patchInstaller.InstallAsync(serverUri, manifest.Patches, _installationDirectory, progress, _shutdown.Token);
-            
+
             ShowProgress("Client is up to date", 100);
             SetButtonEnabled(_startButton, true);
         }
@@ -266,6 +267,11 @@ public partial class MainForm : Form
 
     private void SetButtonEnabled(Button button, bool enabled)
     {
+        if (LauncherEnvironment.TestMode)
+        {
+            enabled = LauncherEnvironment.TestMode;
+        }
+
         button.FlatAppearance.MouseOverBackColor = Color.Transparent;
 
         if (enabled)
@@ -305,8 +311,19 @@ public partial class MainForm : Form
             button.BackgroundImage = grayscale;
             button.Cursor = Cursors.No;
         }
-        
+
 
         button.Enabled = enabled;
+    }
+
+    private void _enableTestMode_CheckedChanged(object sender, EventArgs e)
+    {
+        SetButtonEnabled(_startButton, _enableTestMode.Checked);
+
+        if (_enableTestMode.Checked)
+        {
+            LauncherSettings.EnsureIniEncrypted();
+            LauncherSettings.DecryptIniFile();
+        }
     }
 }

@@ -43,6 +43,7 @@ partial class MainForm
         _progressTrack = new Panel();
         _progressFill = new Panel();
         startPanel = new Panel();
+        _enableTestMode = new CheckBox();
         headerPanel.SuspendLayout();
         centerPanel.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)_webView).BeginInit();
@@ -57,6 +58,7 @@ partial class MainForm
         headerPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         headerPanel.BackColor = Color.FromArgb(24, 34, 51);
         headerPanel.BorderStyle = BorderStyle.FixedSingle;
+        headerPanel.Controls.Add(_enableTestMode);
         headerPanel.Controls.Add(headerTitle);
         headerPanel.Location = new Point(0, 0);
         headerPanel.Name = "headerPanel";
@@ -247,6 +249,16 @@ partial class MainForm
         startPanel.Size = new Size(258, 104);
         startPanel.TabIndex = 1;
         // 
+        // _enableTestMode
+        // 
+        _enableTestMode.ForeColor = Color.White;
+        _enableTestMode.Location = new Point(1230, 5);
+        _enableTestMode.Name = "_enableTestMode";
+        _enableTestMode.Size = new Size(242, 34);
+        _enableTestMode.TabIndex = 1;
+        _enableTestMode.Text = "Enable TestMode";
+        _enableTestMode.CheckedChanged += _enableTestMode_CheckedChanged;
+        // 
         // MainForm
         // 
         AutoScaleDimensions = new SizeF(11F, 28F);
@@ -272,4 +284,6 @@ partial class MainForm
         _progressTrack.ResumeLayout(false);
         ResumeLayout(false);
     }
+
+    public CheckBox _enableTestMode;
 }

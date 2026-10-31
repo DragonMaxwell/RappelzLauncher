@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0-windows</TargetFramework>
@@ -13,10 +13,12 @@
 		<PublishSingleFile>true</PublishSingleFile>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 		<IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
-		<EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
-		<DebugType>embedded</DebugType>
+		<DebugType>None</DebugType>
 		<PublishReadyToRun>false</PublishReadyToRun>
 		<ApplicationIcon>Launcher.ico</ApplicationIcon>
+		<DebugSymbols>false</DebugSymbols>
+		<PublishTrimmed>false</PublishTrimmed>
+		<EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
 	</PropertyGroup>
 
 	<ItemGroup>

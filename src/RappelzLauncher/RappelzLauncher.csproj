@@ -1,4 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>false</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<SelfContained>false</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<PublishTrimmed>false</PublishTrimmed>
+		<EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+	</PropertyGroup>
+
+
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0-windows</TargetFramework>
@@ -11,13 +32,7 @@
 		<AssemblyVersion>2026.05.20.0000</AssemblyVersion>
 		<FileVersion>2026.05.20.0000</FileVersion>
 		<ApplicationIcon>Launcher.ico</ApplicationIcon>
-		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-		<SelfContained>false</SelfContained>
-		<PublishSingleFile>true</PublishSingleFile>
-		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 		<IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
-		<EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
-		<DebugType>embedded</DebugType>
 		<PublishReadyToRun>false</PublishReadyToRun>
 	</PropertyGroup>
 
@@ -37,16 +52,9 @@
 
 		<None Update="RappelzLauncher.ini" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
 		<None Update="Launcher.ico" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
-
-		<ProjectReference Include="..\RappelzLauncher.Updater\RappelzLauncher.Updater.csproj" ReferenceOutputAssembly="false" Private="false" />
+		<None Update="version">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
-
-	<Target Name="PublishUpdaterAfterBuild" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
-		<MSBuild Projects="$(MSBuildProjectDirectory)\..\RappelzLauncher.Updater\RappelzLauncher.Updater.csproj" Targets="Publish" Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=false;PublishSingleFile=true;EnableCompressionInSingleFile=false;NoBuild=true;NoRestore=true;PublishDir=$(TargetDir)" />
-		<Error Condition="!Exists('$(TargetDir)RappelzLauncher.Updater.exe')" Text="RappelzLauncher.Updater.exe was not generated." />
-	</Target>
-
-	<Target Name="CopyUpdaterAfterPublish" AfterTargets="Publish" Condition="Exists('$(TargetDir)RappelzLauncher.Updater.exe')">
-		<Copy SourceFiles="$(TargetDir)RappelzLauncher.Updater.exe" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
-	</Target>
+	
 </Project>

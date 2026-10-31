@@ -1,3 +1,5 @@
+using RappelzLauncher.Core;
+
 namespace RappelzLauncher;
 
 internal static class Program
@@ -13,7 +15,7 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            MessageBox.Show(exception.Message, "Launcher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(exception.GetBaseException().Message, "Launcher Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

@@ -38,6 +38,7 @@ public sealed class LauncherSettings
     public void Save(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        EnsureIniEncrypted();
         
         byte[] key = SHA256.HashData(Encoding.UTF8.GetBytes(EncryptionKey));
         byte[] originalBytes;
@@ -154,6 +155,7 @@ public sealed class LauncherSettings
     public static LauncherSettings Load(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        EnsureIniEncrypted();
         
         byte[] key = SHA256.HashData(Encoding.UTF8.GetBytes(EncryptionKey));
 
@@ -233,5 +235,96 @@ public sealed class LauncherSettings
     private static string Clean(string value)
     {
         return value.Replace("\r", string.Empty, StringComparison.Ordinal).Replace("\n", string.Empty, StringComparison.Ordinal);
+    }
+
+
+    public static void EnsureIniEncrypted()
+    {
+        string filePath = Path.Combine(AppContext.BaseDirectory, "RappelzLauncher.ini");
+
+        if (!File.Exists(filePath))
+        {
+            return;
+        }
+
+        byte[] storedBytes = File.ReadAllBytes(filePath);
+        byte[] key = SHA256.HashData(Encoding.UTF8.GetBytes(EncryptionKey));
+
+        if (storedBytes.Length >= 29)
+        {
+            byte[] nonce = storedBytes.AsSpan(0, 12).ToArray();
+            byte[] tag = storedBytes.AsSpan(12, 16).ToArray();
+            byte[] ciphertext = storedBytes.AsSpan(28).ToArray();
+            byte[] plaintext = new byte[ciphertext.Length];
+
+            try
+            {
+                using AesGcm aes = new(key, 16);
+                aes.Decrypt(nonce, ciphertext, tag, plaintext);
+                return;
+            }
+            catch (AuthenticationTagMismatchException)
+            {
+            }
+        }
+
+        string content;
+
+        try
+        {
+            content = new UTF8Encoding(false, true).GetString(storedBytes);
+        }
+        catch (DecoderFallbackException)
+        {
+            throw new InvalidDataException("Invalid configuration file.");
+        }
+
+        if (!content.Contains("[Login]", StringComparison.OrdinalIgnoreCase) ||
+            !content.Contains("[SframeParams]", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException("Invalid or unsupported configuration file.");
+        }
+
+        byte[] nonceResult = RandomNumberGenerator.GetBytes(12);
+        byte[] tagResult = new byte[16];
+        byte[] ciphertextResult = new byte[storedBytes.Length];
+
+        using (AesGcm aes = new(key, 16))
+        {
+            aes.Encrypt(nonceResult, storedBytes, ciphertextResult, tagResult);
+        }
+
+        byte[] result = new byte[28 + ciphertextResult.Length];
+
+        Buffer.BlockCopy(nonceResult, 0, result, 0, 12);
+        Buffer.BlockCopy(tagResult, 0, result, 12, 16);
+        Buffer.BlockCopy(ciphertextResult, 0, result, 28, ciphertextResult.Length);
+
+        File.WriteAllBytes(filePath, result);
+    }
+
+
+    public static void DecryptIniFile()
+    {
+        string filePath = Path.Combine(AppContext.BaseDirectory, "RappelzLauncher.ini");
+
+        byte[] encrypted = File.ReadAllBytes(filePath);
+
+        if (encrypted.Length < 29)
+            throw new InvalidDataException("Invalid encrypted INI file.");
+
+        byte[] key = SHA256.HashData(Encoding.UTF8.GetBytes(EncryptionKey));
+
+        byte[] nonce = encrypted.AsSpan(0, 12).ToArray();
+        byte[] tag = encrypted.AsSpan(12, 16).ToArray();
+        byte[] ciphertext = encrypted.AsSpan(28).ToArray();
+        byte[] plaintext = new byte[ciphertext.Length];
+
+        using (AesGcm aes = new AesGcm(key, 16))
+        {
+            aes.Decrypt(nonce, ciphertext, tag, plaintext);
+        }
+
+        File.WriteAllBytes(filePath, plaintext);
     }
 }
