@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Net.Http;
 
 namespace RappelzLauncher.Core;
 
