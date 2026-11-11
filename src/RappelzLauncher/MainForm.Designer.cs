@@ -26,6 +26,7 @@ partial class MainForm
     private void InitializeComponent()
     {
         headerPanel = new Panel();
+        _enableTestMode = new CheckBox();
         headerTitle = new Label();
         centerPanel = new Panel();
         _webView = new WebView2();
@@ -43,7 +44,6 @@ partial class MainForm
         _progressTrack = new Panel();
         _progressFill = new Panel();
         startPanel = new Panel();
-        _enableTestMode = new CheckBox();
         headerPanel.SuspendLayout();
         centerPanel.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)_webView).BeginInit();
@@ -64,6 +64,16 @@ partial class MainForm
         headerPanel.Name = "headerPanel";
         headerPanel.Size = new Size(1485, 46);
         headerPanel.TabIndex = 0;
+        // 
+        // _enableTestMode
+        // 
+        _enableTestMode.ForeColor = Color.White;
+        _enableTestMode.Location = new Point(1234, 5);
+        _enableTestMode.Name = "_enableTestMode";
+        _enableTestMode.Size = new Size(242, 34);
+        _enableTestMode.TabIndex = 1;
+        _enableTestMode.Text = "Enable TestMode";
+        _enableTestMode.CheckedChanged += _enableTestMode_CheckedChanged;
         // 
         // headerTitle
         // 
@@ -248,16 +258,6 @@ partial class MainForm
         startPanel.Name = "startPanel";
         startPanel.Size = new Size(258, 104);
         startPanel.TabIndex = 1;
-        // 
-        // _enableTestMode
-        // 
-        _enableTestMode.ForeColor = Color.White;
-        _enableTestMode.Location = new Point(1230, 5);
-        _enableTestMode.Name = "_enableTestMode";
-        _enableTestMode.Size = new Size(242, 34);
-        _enableTestMode.TabIndex = 1;
-        _enableTestMode.Text = "Enable TestMode";
-        _enableTestMode.CheckedChanged += _enableTestMode_CheckedChanged;
         // 
         // MainForm
         // 

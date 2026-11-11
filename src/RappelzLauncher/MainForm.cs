@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Microsoft.Web.WebView2.Core;
 using RappelzLauncher.Core;
 using System.Drawing.Imaging;
+using System.Text;
 
 namespace RappelzLauncher;
 
@@ -20,6 +21,23 @@ public partial class MainForm : Form
     {
         InitializeComponent();
         LauncherEnvironment.Initialize(this);
+        
+        _enableTestMode.Parent!.MouseHover += (_, e) =>
+        {
+            ToolTip tooltip = new ToolTip() { InitialDelay = 200, ShowAlways = true, IsBalloon = true, ToolTipIcon = ToolTipIcon.Info };
+            var sb = new StringBuilder();
+            sb.AppendLine("When checked:");
+            sb.AppendLine("RappelzLauncher.ini file will be decrypted");
+            sb.AppendLine("and the Start Button will be enabled even when");
+            sb.AppendLine("in the event of errors.");
+            sb.AppendLine("");
+            sb.AppendLine("When unchecked:");
+            sb.AppendLine("RappelzLauncher.ini file will be encrypted");
+            sb.AppendLine("Start Button will be enable only if no error occur.");
+            sb.AppendLine("");
+
+            tooltip.SetToolTip(_enableTestMode, sb.ToString());
+        };
 
         _startButton.Parent!.MouseMove += (_, e) =>
         {
@@ -39,6 +57,7 @@ public partial class MainForm : Form
         _accountInput.Text = _settings.Account;
         _passwordInput.Text = _settings.Password;
         _autoLoginInput.Checked = _settings.UseAutoLogin;
+        _enableTestMode.Checked = _settings.TestMode;
 
         Shown += OnShown;
         FormClosing += OnClosing;
@@ -240,6 +259,7 @@ public partial class MainForm : Form
         _settings.Account = _accountInput.Text;
         _settings.Password = _passwordInput.Text;
         _settings.UseAutoLogin = _autoLoginInput.Checked;
+        _settings.TestMode = _enableTestMode.Checked;
         _settings.Save(Path.Combine(_installationDirectory, "RappelzLauncher.ini"));
     }
 
@@ -248,6 +268,13 @@ public partial class MainForm : Form
         _downloadFileLabel.Text = fileName;
         _downloadPercentLabel.Text = percentage.HasValue ? $"{percentage.Value}%" : string.Empty;
         _downloadPercentage = Math.Clamp(percentage ?? 0, 0, 100);
+
+        if (_enableTestMode.Checked)
+        {
+            _downloadFileLabel.Text = "When TestMode is ON all errors are suppressed.";
+            return;
+        }
+
         RenderProgress();
     }
 
@@ -259,6 +286,11 @@ public partial class MainForm : Form
 
     private void ShowError(string title, Exception exception)
     {
+        if (_enableTestMode.Checked)
+        {
+            return;
+        }
+
         if (!IsDisposed && !_shutdown.IsCancellationRequested)
         {
             MessageBox.Show(this, exception.GetBaseException().Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -267,9 +299,9 @@ public partial class MainForm : Form
 
     private void SetButtonEnabled(Button button, bool enabled)
     {
-        if (LauncherEnvironment.TestMode)
+        if (_enableTestMode.Checked)
         {
-            enabled = LauncherEnvironment.TestMode;
+            enabled = true;
         }
 
         button.FlatAppearance.MouseOverBackColor = Color.Transparent;

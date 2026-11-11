@@ -13,6 +13,7 @@ public sealed class LauncherSettings
     private const bool DefaultIniUseAutoLogin = false;
     private const string DefaultIniParameters = "RappelzCmdLauncher.exe SFrame.exe /auth_ip:127.0.0.1 /auth_port:4615 /help_url_w:611 /help_url_h:625 /locale:ASCII /country:CN /cash /gift /commercial_shop /layout_dir:6 /layout_auto:0 /cash_url_w:800 /cash_url_h:631 /use_nprotect:0";
     private const string DefaultIniLauncherUrl = "https://your_server_address";
+    private const bool DefaultTestMode = false;
 
 
     public string Account { get; set; } = string.Empty;
@@ -20,6 +21,7 @@ public sealed class LauncherSettings
     public bool UseAutoLogin { get; set; }
     public string Parameters { get; set; } = string.Empty;
     public string LauncherUrl { get; set; } = string.Empty;
+    public bool TestMode { get; set; }
     
     private static readonly string DefaultIniTemplate = string.Join("\r\n", new[]
     {
@@ -28,6 +30,7 @@ public sealed class LauncherSettings
         $"account={DefaultIniAccount}",
         $"password={DefaultIniPassword}",
         $"useAutoLogin={DefaultIniUseAutoLogin}",
+        $"testMode={DefaultTestMode}",
         "[SframeParams]",
         $"param={DefaultIniParameters}",
         $"launcherUrl={DefaultIniLauncherUrl}",
@@ -66,6 +69,7 @@ public sealed class LauncherSettings
             UseAutoLogin = DefaultIniUseAutoLogin;
             Parameters = DefaultIniParameters;
             LauncherUrl = DefaultIniLauncherUrl;
+            TestMode = DefaultTestMode;
 
             originalBytes = Encoding.UTF8.GetBytes(DefaultIniTemplate);
         }
@@ -103,6 +107,7 @@ public sealed class LauncherSettings
                 "login" when name.Equals("account", StringComparison.OrdinalIgnoreCase) => Clean(Account),
                 "login" when name.Equals("password", StringComparison.OrdinalIgnoreCase) => Clean(Password),
                 "login" when name.Equals("useAutoLogin", StringComparison.OrdinalIgnoreCase) => UseAutoLogin ? "true" : "false",
+                "login" when name.Equals("testMode", StringComparison.OrdinalIgnoreCase) => TestMode ? "true" : "false",
                 _ => null
             };
 
@@ -216,7 +221,8 @@ public sealed class LauncherSettings
         {
             Account = Read("Login.account"),
             Password = Read("Login.password"),
-            UseAutoLogin = bool.TryParse(Read("Login.useAutoLogin"), out bool enabled) && enabled,
+            UseAutoLogin = bool.TryParse(Read("Login.useAutoLogin"), out bool isAutoLogin) && isAutoLogin,
+            TestMode = bool.TryParse(Read("Login.testMode"), out bool isTestMode) && isTestMode,
             Parameters = Read("SframeParams.param"),
             LauncherUrl = Read("SframeParams.launcherUrl")
         };
@@ -279,8 +285,7 @@ public sealed class LauncherSettings
             throw new InvalidDataException("Invalid configuration file.");
         }
 
-        if (!content.Contains("[Login]", StringComparison.OrdinalIgnoreCase) ||
-            !content.Contains("[SframeParams]", StringComparison.OrdinalIgnoreCase))
+        if (!content.Contains("[Login]", StringComparison.OrdinalIgnoreCase) || !content.Contains("[SframeParams]", StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidDataException("Invalid or unsupported configuration file.");
         }
